@@ -18,10 +18,7 @@ class TestCurrencyRevaluation(common.TransactionCase):
         cls.company = cls.env.ref("account_multicurrency_revaluation.res_company_reval")
         cls.env.user.write({"company_ids": [(4, cls.company.id, False)]})
         cls.env.user.company_id = cls.company
-        cls.company.account_journal_payment_debit_account_id = cls.env.ref(
-            "account_multicurrency_revaluation.demo_acc_liquidity_eur"
-        ).id
-        cls.company.account_journal_payment_credit_account_id = cls.env.ref(
+        cls.company.transfer_account_id = cls.env.ref(
             "account_multicurrency_revaluation.demo_acc_liquidity_eur"
         ).id
         cls.reval_journal = cls.env.ref(
@@ -52,7 +49,7 @@ class TestCurrencyRevaluation(common.TransactionCase):
                 "account_type": "asset_receivable",
                 "currency_revaluation": True,
                 "reconcile": True,
-                "company_id": cls.company.id,
+                "company_ids": [(6, 0, [cls.company.id])],
             }
         )
         payable_acc = cls.env.ref("account_multicurrency_revaluation.demo_acc_payable")
@@ -146,7 +143,7 @@ class TestCurrencyRevaluation(common.TransactionCase):
         report = (
             self.env["account.move.line"]
             .search([("account_id", "in", account_ids)])
-            .filtered(lambda l: l.account_id.code == "accrec")
+            .filtered(lambda line: line.account_id.code == "accrec")
         )
         self.assertEqual(sum(report.mapped("debit")), 295)
         self.assertEqual(sum(report.mapped("credit")), 0)
@@ -217,7 +214,7 @@ class TestCurrencyRevaluation(common.TransactionCase):
         report = (
             self.env["account.move.line"]
             .search([("account_id", "in", account_ids)])
-            .filtered(lambda l: l.account_id.code == "accrec")
+            .filtered(lambda line: line.account_id.code == "accrec")
         )
         self.assertEqual(sum(report.mapped("debit")), 180)
         self.assertEqual(sum(report.mapped("credit")), 230)
@@ -293,7 +290,6 @@ class TestCurrencyRevaluation(common.TransactionCase):
                 "amount": 4000,
                 "currency_id": eur_currency.id,
                 "date": self.today - timedelta(days=79),
-                "ref": "Invoice partial payment",
                 "partner_id": invoice.partner_id.id,
                 "partner_type": "customer",
                 "journal_id": eur_bank.id,
@@ -346,7 +342,7 @@ class TestCurrencyRevaluation(common.TransactionCase):
                 "name": "Liability",
                 "code": "L",
                 "account_type": "liability_current",
-                "company_id": self.company.id,
+                "company_ids": [(6, 0, [self.company.id])],
             }
         )
         eur_bank.inbound_payment_method_line_ids.payment_account_id = (
@@ -379,19 +375,18 @@ class TestCurrencyRevaluation(common.TransactionCase):
                 "amount": 100.0,
                 "currency_id": eur_currency.id,
                 "date": self.today - timedelta(days=90),
-                "ref": "Incoming 100 EUR",
                 "partner_id": self.partner.id,
                 "partner_type": "customer",
                 "journal_id": eur_bank.id,
                 "payment_type": "inbound",
             }
         )
+        payment_stmt_line_1.action_post()
         (
             liquidity_lines,
             counterpart_lines,
             writeoff_lines,
         ) = payment_stmt_line_1._seek_for_lines()
-        payment_stmt_line_1.action_post()
 
         (
             _st_liquidity_lines,
@@ -459,19 +454,18 @@ class TestCurrencyRevaluation(common.TransactionCase):
                 "amount": 50.0,
                 "currency_id": eur_currency.id,
                 "date": self.today - timedelta(days=69),
-                "ref": "Incoming 50 EUR",
                 "partner_id": self.partner.id,
                 "partner_type": "customer",
                 "journal_id": eur_bank.id,
                 "payment_type": "inbound",
             }
         )
+        payment_line_3.action_post()
         (
             liquidity_lines,
             counterpart_lines,
             writeoff_lines,
         ) = payment_line_3._seek_for_lines()
-        payment_line_3.action_post()
 
         (
             _st_liquidity_lines,
@@ -540,7 +534,7 @@ class TestCurrencyRevaluation(common.TransactionCase):
                 "name": "Liability",
                 "code": "L",
                 "account_type": "liability_current",
-                "company_id": self.company.id,
+                "company_ids": [(6, 0, [self.company.id])],
             }
         )
         usd_bank.inbound_payment_method_line_ids.payment_account_id = (
@@ -574,19 +568,18 @@ class TestCurrencyRevaluation(common.TransactionCase):
                 "amount": 100.0,
                 "currency_id": usd_currency.id,
                 "date": "2020-11-10",
-                "ref": "Incoming 100 USD",
                 "partner_id": self.partner.id,
                 "partner_type": "customer",
                 "journal_id": usd_bank.id,
                 "payment_type": "inbound",
             }
         )
+        payment_line_1.action_post()
         (
             liquidity_lines,
             counterpart_lines,
             writeoff_lines,
         ) = payment_line_1._seek_for_lines()
-        payment_line_1.action_post()
 
         (
             _st_liquidity_lines,
@@ -655,19 +648,18 @@ class TestCurrencyRevaluation(common.TransactionCase):
                 "amount": 50.0,
                 "currency_id": usd_currency.id,
                 "date": self.today - timedelta(days=69),
-                "ref": "Incoming 50 USD",
                 "partner_id": self.partner.id,
                 "partner_type": "customer",
                 "journal_id": usd_bank.id,
                 "payment_type": "inbound",
             }
         )
+        payment_line_3.action_post()
         (
             liquidity_lines,
             counterpart_lines,
             writeoff_lines,
         ) = payment_line_3._seek_for_lines()
-        payment_line_3.action_post()
 
         (
             _st_liquidity_lines,
@@ -695,19 +687,18 @@ class TestCurrencyRevaluation(common.TransactionCase):
                 "amount": 50.0,
                 "currency_id": eur_currency.id,
                 "date": self.today - timedelta(days=69),
-                "ref": "Incoming 50 EUR",
                 "partner_id": self.partner.id,
                 "partner_type": "customer",
                 "journal_id": usd_bank.id,
                 "payment_type": "inbound",
             }
         )
+        payment_line_4.action_post()
         (
             liquidity_lines,
             counterpart_lines,
             writeoff_lines,
         ) = payment_line_4._seek_for_lines()
-        payment_line_4.action_post()
 
         (
             _st_liquidity_lines,
@@ -769,7 +760,7 @@ class TestCurrencyRevaluation(common.TransactionCase):
                 "name": "Liability",
                 "code": "L",
                 "account_type": "liability_current",
-                "company_id": self.company.id,
+                "company_ids": [(6, 0, [self.company.id])],
             }
         )
         eur_bank.inbound_payment_method_line_ids.payment_account_id = (
@@ -802,19 +793,18 @@ class TestCurrencyRevaluation(common.TransactionCase):
                 "amount": 100.0,
                 "currency_id": eur_currency.id,
                 "date": self.today - timedelta(days=89),
-                "ref": "Incoming 100 EUR",
                 "partner_id": self.partner.id,
                 "partner_type": "customer",
                 "journal_id": eur_bank.id,
                 "payment_type": "inbound",
             }
         )
+        payment_line_1.action_post()
         (
             liquidity_lines,
             counterpart_lines,
             writeoff_lines,
         ) = payment_line_1._seek_for_lines()
-        payment_line_1.action_post()
 
         (
             _st_liquidity_lines,
@@ -883,19 +873,18 @@ class TestCurrencyRevaluation(common.TransactionCase):
                 "amount": 50.0,
                 "currency_id": eur_currency.id,
                 "date": self.today - timedelta(days=69),
-                "ref": "Incoming 50 EUR",
                 "partner_id": self.partner.id,
                 "partner_type": "customer",
                 "journal_id": eur_bank.id,
                 "payment_type": "inbound",
             }
         )
+        payment_line_3.action_post()
         (
             liquidity_lines,
             counterpart_lines,
             writeoff_lines,
         ) = payment_line_3._seek_for_lines()
-        payment_line_3.action_post()
 
         (
             _st_liquidity_lines,

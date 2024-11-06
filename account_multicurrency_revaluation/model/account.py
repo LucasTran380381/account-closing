@@ -3,7 +3,7 @@
 # Copyright 2022 ForgeFlow S.L. (https://www.forgeflow.com)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 
@@ -114,18 +114,18 @@ class AccountAccount(models.Model):
             and any([not x for x in self.mapped("include_initial_balance")])
         ):
             raise UserError(
-                _(
+                self.env._(
                     "There is an account that you are editing not having the Bring "
                     "Balance Forward set, the currency revaluation cannot be applied "
-                    "on these accounts: \n\t - %s"
-                )
-                % "\n\t - ".join(
-                    self.filtered(lambda x: not x.include_initial_balance).mapped(
-                        "name"
-                    )
+                    "on these accounts: \n\t - %s",
+                    "\n\t - ".join(
+                        self.filtered(lambda x: not x.include_initial_balance).mapped(
+                            "name"
+                        )
+                    ),
                 )
             )
-        return super(AccountAccount, self).write(vals)
+        return super().write(vals)
 
     def _get_revaluation_account_types(self):
         return [
@@ -153,7 +153,9 @@ class AccountAccount(models.Model):
             ]
         )
         self.env["account.move.line"]._apply_ir_rules(query)
-        tables, where_clause, where_clause_params = query.get_sql()
+        tables = f'"{query.table}"'
+        where_clause = query.where_clause.code
+        where_clause_params = query.where_clause.params
         mapping = [
             ('"account_move_line".', "aml."),
             ('"account_move_line"', "account_move_line aml"),

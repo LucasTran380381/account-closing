@@ -4,7 +4,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 
@@ -36,7 +36,7 @@ class UnrealizedCurrencyReportPrinter(models.TransientModel):
         account_model = self.env["account.account"]
         company = self.env.company
         account_ids = account_model.search(
-            [("currency_revaluation", "=", True), ("company_id", "=", company.id)]
+            [("currency_revaluation", "=", True), ("company_ids", "in", [company.id])]
         ).ids
         return [(6, 0, account_ids)]
 
@@ -44,7 +44,9 @@ class UnrealizedCurrencyReportPrinter(models.TransientModel):
     def _onchange_dates(self):
         self.ensure_one()
         if self.start_date and self.end_date and self.start_date > self.end_date:
-            raise UserError(_("The Start Date cannot be higher than the End Date."))
+            raise UserError(
+                self.env._("The Start Date cannot be higher than the End Date.")
+            )
 
     def _default_start_date(self):
         return fields.Date.today().replace(day=1)
@@ -69,4 +71,4 @@ class UnrealizedCurrencyReportPrinter(models.TransientModel):
                 "account_multicurrency_revaluation.action_report_currency_unrealized"
             ).report_action(docids=[], data=data, config=False)
         else:
-            raise ValidationError(_("Please, select the accounts!"))
+            raise ValidationError(self.env._("Please, select the accounts!"))

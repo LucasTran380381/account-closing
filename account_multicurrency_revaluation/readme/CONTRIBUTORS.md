@@ -16,7 +16,9 @@
 - [Tecnativa](https://www.tecnativa.com):
   - Pedro M. Baeza
   - Ernesto Tejeda
-- Phuc (Tran Thanh) \<<phuc@trobz.com>\>
+- [Trobz](https://www.trobz.com):
+  - Phuc (Tran Thanh) \<<phuc@trobz.com>\>
+  - Nhan Tran \<<nhant@trobz.com>\>
 - [ForgeFlow](https://www.forgeflow.com):
   - Jordi Masvidal
   - Guillem Casassas

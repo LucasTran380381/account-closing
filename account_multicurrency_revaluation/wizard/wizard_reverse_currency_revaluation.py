@@ -1,7 +1,7 @@
 # Copyright 2022 ForgeFlow S.L. (https://www.forgeflow.com)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import _, api, exceptions, fields, models
+from odoo import api, exceptions, fields, models
 
 
 class WizardCurrencyRevaluation(models.TransientModel):
@@ -18,7 +18,8 @@ class WizardCurrencyRevaluation(models.TransientModel):
     )
     revaluation_interval_end_date = fields.Date(
         string="Revaluation End Date",
-        help="All entries revaluated on or before this date will be taken into account.",
+        help="All entries revaluated on or before this date "
+        "will be taken into account.",
     )
 
     reverse_posting_date = fields.Date(
@@ -80,8 +81,8 @@ class WizardCurrencyRevaluation(models.TransientModel):
         if created_entries:
             return {
                 "domain": [("id", "in", created_entries.ids)],
-                "name": _("Reverse Revaluation Entries"),
-                "view_mode": "tree,form",
+                "name": self.env._("Reverse Revaluation Entries"),
+                "view_mode": "list,form",
                 "auto_search": True,
                 "res_model": "account.move",
                 "view_id": False,
@@ -89,4 +90,4 @@ class WizardCurrencyRevaluation(models.TransientModel):
                 "type": "ir.actions.act_window",
             }
         else:
-            raise exceptions.Warning(_("No accounting entry has been posted."))
+            raise exceptions.Warning(self.env._("No accounting entry has been posted."))
